@@ -5,7 +5,7 @@
 -module (qnc_radio_tower_sup).
 -behaviour (supervisor).
 
--include ("../include/qnc_radio_tower_constants.hrl").
+-include ("../include/qrt_constants.hrl").
 
 
 %% --------
@@ -14,6 +14,7 @@
 -export ([start/1, stop/0]).
 -export ([init/1]).
 
+-export ([ new_radio/1, close_radio/1 ]).
 
 
 %% ---------
@@ -45,3 +46,21 @@ stop()->
     undefined->  ok;
     Pid->  	     exit(Pid, shutdown)
   end.
+
+
+
+%% @doc
+%% start supervisor children
+%% @spec (Args::term())-> {ok, pid()} | pid() | ok
+new_radio(Args)->
+   case whereis(?MODULE) of
+    Pid when is_pid(Pid)->
+   	   supervisor:start_child(?MODULE, [Args]);
+   	undefined->
+   	    ok
+   end.
+
+
+close_radio(RadioName)->
+   qnc_radio:stop(RadioName).
+   % supervisor:terminate_child(?MODULE, RadioName).

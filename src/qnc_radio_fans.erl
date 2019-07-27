@@ -7,7 +7,7 @@
 -module (qnc_radio_fans).
 -behaviour (gen_server).
 
--include ("../include/qnc_radio_tower_constants.hrl").
+-include ("../include/qrt_constants.hrl").
 
 
 %% API functions
@@ -21,7 +21,7 @@
 %% client interface functions
 
 start(Req)->
-	gen_server:start_link({local, Req#req.id}, ?MODULE, Req, []).
+	gen_server:start_link({local, Req}, ?MODULE, Req, []).
 
 
 stop(Name)->

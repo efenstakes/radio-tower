@@ -3,7 +3,7 @@
   [
     { vsn, "0.0" }, 
     { description, "a publish subscribe server" },
-    
+
     { 
 	    modules, [
                   qnc_radio_tower, qnc_radio_tower_sup, qnc_radio, qrt_utility 
@@ -17,7 +17,7 @@
     },
 
     {
-	    applications: [
+	    applications, [
                        kernel, stdlib
 	    ]
     },
