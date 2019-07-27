@@ -27,11 +27,12 @@
 
 -export ([ add_fan/2, remove_fan/2, clear_fans/1, get_fans/1 ]).
 
+
 %% for tests
 -export ([ get_next_timeout/1, get_sort_order/1 ]).
 
 
-%% internal functions
+%% internal functionss
 
 
 
@@ -61,7 +62,7 @@ clear_fans(Name)->   gen_server:cast(Name, clear_fans).
 
 
 %% get radio fans
-get_fans(Name)->   gen_server:cast(Name, get_fans).
+get_fans(Name)->   gen_server:call(Name, get_fans).
 
 
 
@@ -72,17 +73,35 @@ get_fans(Name)->   gen_server:cast(Name, get_fans).
 init(Args)->
    process_flag(trap_exit, true),
    % io:format("args ~p~n", [Args]),
-   
+   qrt_log:add(Args#radio.name),
    % Timeout = 
 
    {ok, Args, ?TIMEOUT}.
 
 
+handle_call(get_fans, _From, State)->
+   {reply, State#radio.fans, State, ?TIMEOUT};
+
 handle_call(_Req, From, State)->
    {reply, From, State, ?TIMEOUT}.
 
 
+handle_cast({ add_fan, Fan }, State)->
+   NewFanList = [ Fan , State#radio.fans ],
+   NewState = State#radio{ fans = NewFanList },
+   {noreply, NewState, ?TIMEOUT};
+
+handle_cast({ remove_fan, Fan }, State)->
+   NewFanList = lists:filter( fun(Fern)-> Fern == Fan end, State#radio.fans ),
+   NewState = State#radio{ fans = NewFanList },
+   {noreply, NewState, ?TIMEOUT};
+
+handle_cast(clear_fans, State)->
+   NewState = State#radio{ fans = [] },
+   {noreply, NewState, ?TIMEOUT};
+
 handle_cast(shutdown, State)->
+   qrt_log:add(State#radio.name),
    {stop, shutdown, State};
 
 handle_cast(_Req, State)->
@@ -106,8 +125,11 @@ handle_info(timeout, State)->
       
       close_after->
         case is_close_time(State) of 
-   	        true->   {stop, shutdown, State};
-   	        false->  {noreply, State, ?TIMEOUT}
+   	        true->   
+               qrt_log:add(State#radio.name), 
+               {stop, shutdown, State};
+   	        false->  
+   	           {noreply, State, ?TIMEOUT}
         end;
  
       check_emptiness when (State#radio.check_emptiness)#check_emptiness.afterr =/= undefined ->
@@ -115,6 +137,7 @@ handle_info(timeout, State)->
         	true->
         	   case (State#radio.check_emptiness)#check_emptiness.action of 
         	   	 Actn when Actn == "CLOSE"->
+				    qrt_log:add(State#radio.name),
         	   	    {stop, shutdown, State};
         	   	 _->
         	   	    {noreply, State, ?TIMEOUT}
@@ -125,8 +148,11 @@ handle_info(timeout, State)->
 
        _->
         case is_close_time(State) of 
-   	        true->   {stop, shutdown, State};
-   	        false->  {noreply, State, ?TIMEOUT}
+   	        true->   
+			   qrt_log:add(State#radio.name),
+			   {stop, shutdown, State};
+   	        false->  
+   	           {noreply, State, ?TIMEOUT}
         end
                 
    end;

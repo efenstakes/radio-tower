@@ -1,8 +1,8 @@
 %% @author efen
 %% @since 27/07/2019
 %% @doc
-%% start radio tower processes
--module (qnc_radio_tower_sup).
+%% start application supervisor processes
+-module (qrt_sup).
 -behaviour (supervisor).
 
 -include ("../include/qrt_constants.hrl").
@@ -13,8 +13,6 @@
 %% --------
 -export ([start/1, stop/0]).
 -export ([init/1]).
-
--export ([ new_radio/1, close_radio/1 ]).
 
 
 %% ---------
@@ -31,9 +29,10 @@ start(Args)->	supervisor:start_link({local, ?MODULE}, ?MODULE, [Args]).
 %% start supervisor children
 %% @spec (Args::term())-> {ok, pid()} | pid() | ok
 init(_Args)->
-   SupSpecs = ?SUP_SPEC3,
-   RadioTower = ?NEW_CHILD(qnc_radio_tower, []),
-   Childs = [ RadioTower ],
+   SupSpecs = ?SUP_SPEC1,
+   RadioSup = ?NEW_SUP(qnc_radio_sup, []),
+   LogSup = ?NEW_CHILD(qrt_log, []),
+   Childs = [ RadioSup, LogSup ],
    {ok, {SupSpecs, Childs}}.
 
 
@@ -46,21 +45,3 @@ stop()->
     undefined->  ok;
     Pid->  	     exit(Pid, shutdown)
   end.
-
-
-
-%% @doc
-%% start supervisor children
-%% @spec (Args::term())-> {ok, pid()} | pid() | ok
-new_radio(Args)->
-   case whereis(?MODULE) of
-    Pid when is_pid(Pid)->
-   	   supervisor:start_child(?MODULE, [Args]);
-   	undefined->
-   	    ok
-   end.
-
-
-close_radio(RadioName)->
-   qnc_radio:stop(RadioName).
-   % supervisor:terminate_child(?MODULE, RadioName).

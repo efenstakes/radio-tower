@@ -6,7 +6,7 @@
 
     { 
 	    modules, [
-                  qnc_radio_tower, qnc_radio_tower_sup, qnc_radio, qrt_utility 
+                  qnc_radio_tower, qrt_sup, qrt_log, qnc_radio_sup, qnc_radio, qrt_utility 
 	    ] 
     },
 
