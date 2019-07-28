@@ -1,0 +1,10 @@
+{
+  release,
+  {"qnc_radio_tower", "0.0"},
+  {erts, "10.3"},
+  [
+   {kernel, "6.3"}, {stdlib, "3.8"},
+   {mnesia, "4.15.6"}, {sasl, "3.3"},
+   {qnc_radio_tower, "0.0"}
+  ]	
+}.

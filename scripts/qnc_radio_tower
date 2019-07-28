@@ -1,0 +1,31 @@
+#!/bin/ba
+
+## @author efen
+## @to 
+## start or initialize the application
+
+VSN=0.0
+BOOT_FILE_PATH=./releases/$VSN
+LIB_PATH=./lib
+
+## function definitions
+## initialize app 
+init_app(){
+  ./erts-10.3/bin/erl -sname qnc_radio_tower -pa ./lib/*/ebin -eval "1+3." -noshell -s erlang halt
+}
+
+start_app(){
+  ./erts-10.3/bin/erl -sname qnc_radio_tower -pa ./lib/*/ebin  $LIB_PATH/qnc_radio_tower-$VSN/priv/*/ebin -boot $BOOT_FILE_PATH/start -config $BOOT_FILE_PATH/sys  -emu_args +Bc
+}
+
+
+
+case $1 in
+  init)
+    init_app
+    ;;
+  *)
+    start_app $1
+    ;;
+esac
+

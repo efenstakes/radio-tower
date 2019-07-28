@@ -1,0 +1,4 @@
+#! ./bin/bash
+
+erlc doc_gen.erl 
+erl -pa doc -s doc_gen -no_input -no_shell -eval "erlang:halt()."
