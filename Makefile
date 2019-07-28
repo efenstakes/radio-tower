@@ -1,69 +1,60 @@
-#! ./bin/sh
 SHELL := /bin/sh
+.SUFFIXES :
+.SUFFIXES : .erl .hrl .app .rel
 
-## set the extensions we deal with
-##
-.SUFFICES :
-.SUFFICES : .erl .beam .hrl
+# define variables
+BEAM_DIR := ./ebin
+SRC_DIR := ./src
+INCLUDE_DIR := ./include
+REL_DIR := ./release
 
-## set search paths for diff kinds of files
-##
-vpath  %.h  ./include
-vpath  %.beam  ./ebin
-vpath  %.erl  ./src
+ERLS := $(wildcard ./src/*.erl)
+BEAMS := $(subst ./src, ./ebin, $(patsubst %.erl, %.beam, $(ERLS))) 
+#$(ERLS: .erl=.beam)
 
-
-## set vars
 ERLC := erlc
-SOURCEDIR := ./src
-BEAMDIR := ./ebin
-INCLUDEDIR := ./include
-REL_DIR := ./releases
+ERLC_FLAGS := -o $(BEAM_DIR)
 
-EFILES := $(wildcard $(SOURCEDIR)/*.erl)
-BEAMS := $(patsubst %.erl, %.beam, $(subst $(SOURCEDIR)/, , $(EFILES))) 
+VPATH := $(BEAM_DIR) $(SRC_DIR) $(INCLUDE_DIR)
 
-DBDEPENDENT := dsm.erl 
 
-.PHONY : all documentation clean realclean release relclean
 
-## define default goal
-all : $(BEAMS)
-	
-## compile erl files
-## state that each depend on a corresponding .erl file
-## and that the .beam files sh be saved in ../ebin dir
-%.beam : %.erl
-	$(ERLC) -o $(BEAMDIR) $< 
+.PHONY : all generate_docs clean realclean release relclean
 
-## all erl files depend on commons.hrl header file
-$(BEAMS) : $(INCLUDEDIR)/*.hrl 
-## $(DBDEPENDENT) : $(INCLUDEDIR)/grd_dsm.hrl
+all: $(BEAMS)
 
-documentation:
-	cd doc && erl -s doc_gen -s erlang halt -noshell -noinput
+$(BEAM_DIR)/%.beam : %.erl
+	$(ERLC) $(ERLC_FLAGS) $<
 
-release : relclean
-	-cp $(BEAMDIR)/*.beam  scripts/* $(REL_DIR)/tmp
+$(BEAMS): $(INCLUDE_DIR)/*.hrl
 
-## delete all beam files in ebin directory
-clean :
-	-rm $(BEAMDIR)/*.beam
 
-## delete all files in ebin directory
-realclean :
-	-rm $(BEAMDIR)/*.beam $(BEAMDIR)/*.app $(BEAMDIR)/*.rel
 
-relclean :
-	-rm -r $(REL_DIR)/tmp/*.beam $(REL_DIR)/tmp/*.app $(REL_DIR)/tmp/*.rel $(REL_DIR)/tmp/*.gz
+generate_docs :
+	cd doc; erl -s doc_gen -s erlang halt -noshell -noinput 
 
-.PHONY : erls beams
 
-## convenience to list .erl files
-erls :
-	@echo esource files are $(EFILES)
+clean:
+	-rm -r $(BEAM_DIR)/*.beam
 
-## list all beam files
-beams :
-	@echo beam files are $(BEAMS)
+realclean:
+	-rm -r $(BEAM_DIR)/*.beam $(BEAM_DIR)/*.rel $(BEAM_DIR)/*.app
+
+release: relclean
+	-cp -r $(BEAM_DIR) ./scripts $(REL_DIR)/tmp
+
+relclean:
+	-rm -r $(REL_DIR)/tmp/*.beam $(REL_DIR)/tmp/*.rel $(REL_DIR)/tmp/*.app $(REL_DIR)/tmp/*.gz $(REL_DIR)/tmp/*.boot $(REL_DIR)/tmp/*.script
+
+# other help tests
+.PHONY : eflags erls beams 
+
+eflags:
+	@echo $(ERLC_FLAGS)
+
+erls:
+	@echo $(ERLS)
+
+beams:
+	@echo $(BEAMS)
 
